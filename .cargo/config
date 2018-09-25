@@ -1,0 +1,5 @@
+[target.arm-unknown-linux-gnueabihf]
+
+linker = "armv6l-unknown-linux-gnueabihf-gcc"
+
+rustflags = ["-C", "link-arg=-Wl,-dynamic-linker,/lib/ld-linux-armhf.so.3"]

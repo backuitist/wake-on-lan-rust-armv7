@@ -7,14 +7,13 @@ in
 
 pkgs.stdenv.mkDerivation {
 
-  name = "hi-there";
+  name = "rust-http-hello-world-rpi";
 
   buildInputs = [
 
-    (pkgs.rustChannelOfTargets "stable" null
-
+    # rocket requires rust nightly -- use `stable` otherwise
+    (pkgs.rustChannelOfTargets "nightly" null
                           [ "x86_64-unknown-linux-gnu"
-
                             "arm-unknown-linux-gnueabihf" ])
 
     arm.stdenv.cc

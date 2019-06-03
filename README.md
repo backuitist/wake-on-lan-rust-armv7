@@ -6,9 +6,11 @@ We're using Rocket which uses the plugin experimental feature (requiring nightly
     $ ./build.sh
 
 Copy the binary to your Raspberry pi, e.g:
+    
     $ scp hello-world remote-rpi:
 
 Run it (overriding the bind address in development env.):
+    
     $ ssh remote-rpi
     $ ROCKET_ADDRESS=0.0.0.0 ./hello-world
 

@@ -7,7 +7,7 @@ We're using Rocket which uses the plugin experimental feature (requiring nightly
 
 Copy the binary to your Raspberry pi, e.g:
     
-    $ scp hello-world remote-rpi:
+    $ scp target/arm-unknown-linux-gnueabihf/release/wake-nas-up remote-rpi:
 
 Run it (overriding the bind address in development env.):
     

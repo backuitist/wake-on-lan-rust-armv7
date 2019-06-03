@@ -1,5 +1,5 @@
 [package]
-name = "hello-world"
+name = "wake-nas-up"
 version = "0.1.0"
 authors = ["Bruno Bieth <biethb@gmail.com>"]
 

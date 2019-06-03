@@ -10,34 +10,42 @@ use rocket::config::{Config, Environment, ConfigError};
 
 #[post("/awake")]
 fn awake_nas() -> Result<&'static str, Status> {
-    send_wol(
+    send_wol_to_nas().map_err(|_| Status::InternalServerError)?; // TODO do something with the error
+    Ok("Nas awakened!")
+}
+
+fn send_wol_to_nas() -> Result<(), Error> {
+  send_wol(
         vec![0x00, 0x11, 0x32, 0x2c, 0x68, 0x6d],
         "255.255.255.255:9",
         "0.0.0.0:0"
-    ).map_err(|_| Status::InternalServerError)?; // TODO do something with the error
-    Ok("Nas awakened!")
+  )
 }
 
 fn main() -> Result<(), ConfigError>{
 
-  if let Some(arg) = env.args().collect().head() {
-    arg.
-  }
+  let port = 8000;
 
-  // By default `rocket::ignite()` will run in the development mode which binds
-  // the server on localhost:8000.
-  // One way to change the bind address is to use the ROCKET_ADDRESS env var:
-  // $ ROCKET_ADDRESS=0.0.0.0 ./hello-world 
+  if let Some(_) = env::args().find(|a| a == "--server" ) {
   
-  let config = Config::build(Environment::Production)
-    .address("0.0.0.0")
-    .port(8000)
-    .finalize()?;
+    println!("Starting server on port {}", port);
+    // By default `rocket::ignite()` will run in the development mode which binds
+    // the server on localhost:8000.
+    // One way to change the bind address is to use the ROCKET_ADDRESS env var:
+    // $ ROCKET_ADDRESS=0.0.0.0 ./hello-world 
+    
+    let config = Config::build(Environment::Production)
+      .address("0.0.0.0")
+      .port(8000)
+      .finalize()?;
 
-  rocket::custom(config)
-    .mount("/nas", routes![awake_nas])
-    .launch();
-
+    rocket::custom(config)
+      .mount("/nas", routes![awake_nas])
+      .launch();
+  } else {
+    println!("Sending packet to NAS!");
+    send_wol_to_nas().expect("Could not send packets!");
+  }
   Ok(())
 }
 

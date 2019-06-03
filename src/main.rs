@@ -1,10 +1,10 @@
-#![feature(plugin)]
-#![plugin(rocket_codegen)]
+#![feature(proc_macro_hygiene, decl_macro)]
 
-extern crate rocket;
+#[macro_use] extern crate rocket;
 
 use std::net::{UdpSocket, ToSocketAddrs};
 use std::io::Error;
+use std::env;
 use rocket::http::Status;
 use rocket::config::{Config, Environment, ConfigError};
 
@@ -19,20 +19,26 @@ fn awake_nas() -> Result<&'static str, Status> {
 }
 
 fn main() -> Result<(), ConfigError>{
-    // By default `rocket::ignite()` will run in the development mode which binds
-    // the server on localhost:8000.
-    // One way to change the bind address is to use the ROCKET_ADDRESS env var:
-    // $ ROCKET_ADDRESS=0.0.0.0 ./hello-world 
-    
-    let config = Config::build(Environment::Production)
-        .address("0.0.0.0")
-        .port(8000)
-        .finalize()?;
 
-    let app = rocket::custom(config, true);
+  if let Some(arg) = env.args().collect().head() {
+    arg.
+  }
 
-    app.mount("/nas", routes![awake_nas]).launch();
-    Ok(())
+  // By default `rocket::ignite()` will run in the development mode which binds
+  // the server on localhost:8000.
+  // One way to change the bind address is to use the ROCKET_ADDRESS env var:
+  // $ ROCKET_ADDRESS=0.0.0.0 ./hello-world 
+  
+  let config = Config::build(Environment::Production)
+    .address("0.0.0.0")
+    .port(8000)
+    .finalize()?;
+
+  rocket::custom(config)
+    .mount("/nas", routes![awake_nas])
+    .launch();
+
+  Ok(())
 }
 
 /**

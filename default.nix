@@ -5,29 +5,18 @@ let
     
     pkgs = pkgs_source { overlays = [moz_overlay]; };
     
-    pkgs_no_overlay = pkgs_source {};
-    
-    arm = pkgs_source {
+    armPkgs = pkgs_source {
         crossSystem = pkgs.lib.systems.examples.raspberryPi; };
     
     filteredSources = pkgs.lib.sources.sourceFilesBySuffices ./. [".lock" ".rs" ".toml"];
     
     name = "http-wake-on-lan";
-
-    buildPhase = ''
-      env
-      cargo --version      
-      export CARGO_HOME=tmp-cargo-home
-      ${pkgs.curl}/bin/curl https://www.github.com
-      cargo fetch --locked
-
-      cargo build --target arm-unknown-linux-gnueabihf --release
-    '';
 in {
-
+  
+  ## TODO try to use the rust platform using cargo options.
   arm = pkgs.stdenv.mkDerivation {
 
-    inherit name buildPhase;
+    inherit name;
 
     src = filteredSources;
 
@@ -38,30 +27,18 @@ in {
                             [ "x86_64-unknown-linux-gnu"
                               "arm-unknown-linux-gnueabihf" ])
 
-      arm.stdenv.cc
-
+      armPkgs.stdenv.cc
     ];    
-  };
 
-  x86_64 = pkgs_no_overlay.stdenv.mkDerivation {
-
-    inherit name;
-
+    # This won't work as nix doesn't expect builds to pull
+    # things from the outside. It would mess up the hash calculation.
     buildPhase = ''
-      echo ${pkgs.curl}
-      ${pkgs.curl}/bin/curl --version
-      ldd ${pkgs.curl}/bin/curl
-      ls /etc
-      cat /etc/resolv.conf
-      ${pkgs.strace}/bin/strace ${pkgs.curl}/bin/curl https://www.github.com 2>&1 | grep resolv
+      export CARGO_HOME=tmp-cargo-home
+      
+      cargo fetch --locked
+
+      cargo build --target arm-unknown-linux-gnueabihf --release
     '';
-
-    src = ./.;
-
-    buildInputs = [
-      # rocket requires rust nightly -- use `stable` otherwise
-      (pkgs.rustChannelOfTargets "nightly" null [ "x86_64-unknown-linux-gnu"])
-    ];
   };
 
   shell = pkgs.stdenv.mkDerivation {
@@ -70,9 +47,27 @@ in {
 
     buildInputs = [
       pkgs.curl
-
+      # pkgs.rls
+      
       # rocket requires rust nightly -- use `stable` otherwise
-      (pkgs.rustChannelOfTargets "nightly" null [ "x86_64-unknown-linux-gnu"])
+      # https://github.com/SergioBenitez/Rocket/issues/19
+      ((pkgs.rustChannelOf {
+        channel = "nightly";
+        date = "2019-03-20";
+      }).rust.override {
+        targets = [ 
+          "x86_64-unknown-linux-gnu"
+          "arm-unknown-linux-gnueabihf"
+        ];
+        extensions = [
+          "rust-src"
+          "rls-preview" # rls isn't always available on nightly ...
+          # ... and nightly is needed by rocket!
+          "rustfmt-preview"
+        ];
+      })
+
+      armPkgs.stdenv.cc
     ];
   };
 }

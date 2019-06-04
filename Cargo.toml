@@ -1,6 +1,7 @@
 [package]
-name = "hello-world"
+name = "wake-nas-up"
 version = "0.1.0"
 authors = ["Bruno Bieth <biethb@gmail.com>"]
 
 [dependencies]
+rocket = "0.4.1"
